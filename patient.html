@@ -30,7 +30,7 @@ input,select{width:100%;padding:12px;margin:4px 0;border:1px solid var(--bd);bor
 <div class="w" id="app">جارٍ التحميل…</div>
 <script>
 const U='https://qmpkufewmjlggacjivfp.supabase.co',K='sb_publishable_FImCadKH3NWYFBYdUQW6Xg_gHdSCmLY';
-const db=supabase.createClient(U,K),$=i=>document.getElementById(i),A=$('app');
+const db=supabase.createClient(U,K,{auth:{storageKey:'sb-patient'}}),$=i=>document.getElementById(i),A=$('app');
 const SN={requested:'بانتظار الموافقة',booked:'مؤكد',waiting:'في الانتظار',in_treatment:'قيد العلاج',done:'انتهى',cancelled:'ملغي',no_show:'لم يحضر'};
 const CD={filling:'حشوة',root_canal:'علاج عصب',extraction:'خلع',cleaning:'تنظيف',crown:'تلبيسة',bridge:'جسر',implant:'زرعة',braces:'تقويم',missing:'سن مفقود',decay:'تسوس',fracture:'كسر',other:'أخرى'};
 const UP=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28],LO=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
@@ -69,7 +69,7 @@ async function activate(){
 async function out(){await db.auth.signOut();location.reload()}
 
 async function load(){
- const p=await db.from('patients').select('*').maybeSingle();P=p.data;
+ const ss=await db.auth.getSession();const p=await db.from('patients').select('*').eq('user_id',ss.data.session.user.id).maybeSingle();P=p.data;
  if(!P){A.innerHTML='<div class="c">هذا الحساب غير مفعّل بملف مريض.<br><br><button onclick="out()">خروج</button></div>';return}
  const R=await Promise.all([
   db.from('appointments').select('*').order('starts_at',{ascending:false}),

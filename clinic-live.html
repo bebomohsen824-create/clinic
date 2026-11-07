@@ -38,7 +38,7 @@ input,select{width:100%;padding:11px;margin:4px 0;border:1px solid var(--bd);bor
 <div class="w" id="app">جارٍ التحميل…</div>
 <script>
 const U='https://qmpkufewmjlggacjivfp.supabase.co',K='sb_publishable_FImCadKH3NWYFBYdUQW6Xg_gHdSCmLY';
-const db=supabase.createClient(U,K),$=i=>document.getElementById(i),A=$('app');
+const db=supabase.createClient(U,K,{auth:{storageKey:'sb-doctor'}}),$=i=>document.getElementById(i),A=$('app');
 const SN={requested:'طلب حجز',booked:'محجوز',waiting:'ينتظر',in_treatment:'قيد العلاج',done:'انتهى',cancelled:'ألغى',no_show:'لم يحضر'};
 let me,pts=[],aps=[],qs=[],docs=[],scs=[],sv=[],tab='home',cn='',sp=null,to=null,th=[],dt=[],py=[],iv=[],bal=null;
 const toast=m=>{const e=document.createElement('div');e.className='t';e.textContent=m;document.body.append(e);setTimeout(()=>e.remove(),2200)};
