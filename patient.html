@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>عيادتي</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{--bg:#f3f7f8;--cd:#fff;--tx:#12303a;--mu:#6b8590;--pr:#0f8b8d;--p2:#e1f3f3;--bd:#dbe6e9;--ok:#2e9e5b;--er:#d9534f;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1c21;--cd:#16282f;--tx:#e6f1f3;--mu:#8fa8b1;--pr:#2bb3b5;--p2:#17383b;--bd:#264047;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px Tahoma,Arial,sans-serif;padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
+.w{max-width:560px;margin:auto;padding:12px}
+button,input,select{font:inherit;color:inherit}
+button,.b{background:var(--p2);color:var(--pr);border:0;border-radius:10px;padding:11px 12px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;text-align:center}
+.p{background:var(--pr);color:#fff}.on{background:var(--pr);color:#fff}
+input,select{width:100%;padding:12px;margin:4px 0;border:1px solid var(--bd);border-radius:10px;background:var(--cd)}
+.c{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}.c h3{margin:0 0 8px;font-size:16px}
+.nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;position:sticky;top:0;background:var(--bg)}.nav button{white-space:nowrap}
+.gr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.st{background:var(--p2);border-radius:12px;padding:10px;text-align:center}.st b{display:block;font-size:20px;color:var(--pr)}.st span{color:var(--mu);font-size:12px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--bd)}.row:last-child{border:0}
+.row small{display:block;color:var(--mu)}.mu{color:var(--mu)}.tag{background:var(--p2);color:var(--pr);padding:3px 9px;border-radius:20px;font-size:12px;white-space:nowrap}
+.teeth{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;direction:ltr;margin:6px 0 12px}
+.tt{aspect-ratio:1;padding:0;font-size:13px;background:var(--cd);color:var(--tx);border:1px solid var(--bd)}
+.tt.h{background:var(--p2);border-color:var(--pr)}.tt.x{background:var(--er);color:#fff}.tt.s{background:var(--pr);color:#fff}
+.t{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:20px;z-index:9}
+</style>
+</head>
+<body>
+<div class="w" id="app">جارٍ التحميل…</div>
+<script>
+const U='https://qmpkufewmjlggacjivfp.supabase.co',K='sb_publishable_FImCadKH3NWYFBYdUQW6Xg_gHdSCmLY';
+const db=supabase.createClient(U,K),$=i=>document.getElementById(i),A=$('app');
+const SN={requested:'بانتظار الموافقة',booked:'مؤكد',waiting:'في الانتظار',in_treatment:'قيد العلاج',done:'انتهى',cancelled:'ملغي',no_show:'لم يحضر'};
+const CD={filling:'حشوة',root_canal:'علاج عصب',extraction:'خلع',cleaning:'تنظيف',crown:'تلبيسة',bridge:'جسر',implant:'زرعة',braces:'تقويم',missing:'سن مفقود',decay:'تسوس',fracture:'كسر',other:'أخرى'};
+const UP=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28],LO=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+let P,CL={},sv=[],dc=[],aps=[],th=[],dt=[],py=[],rx=[],nt=[],bal={},tab='home',to=null,mode='in';
+const toast=m=>{const e=document.createElement('div');e.className='t';e.textContent=m;document.body.append(e);setTimeout(()=>e.remove(),2500)};
+const em=ph=>ph.replace(/\D/g,'')+'@pt.clinic',money=n=>Number(n||0).toLocaleString('en');
+const dd=s=>new Date(s).toLocaleDateString('ar'),dtm=s=>new Date(s).toLocaleString('ar',{dateStyle:'medium',timeStyle:'short'});
+
+async function boot(){
+ const{data:{session}}=await db.auth.getSession();
+ if(!session)return login();
+ await load();
+ if(P)db.channel('p').on('postgres_changes',{event:'*',schema:'public',table:'appointments'},load).on('postgres_changes',{event:'*',schema:'public',table:'notifications'},load).subscribe()}
+function login(){
+ const act=mode=='act';
+ A.innerHTML=`<div class="c" style="margin-top:8vh"><h3>🦷 ${act?'تفعيل حسابي':'دخول المريض'}</h3>
+ <input id="ph" type="tel" inputmode="tel" placeholder="رقم الهاتف المسجل في العيادة" dir="ltr">
+ ${act?'<input id="cd" inputmode="numeric" placeholder="كود التفعيل من العيادة" dir="ltr">':''}
+ <input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="${act?'اختر رقماً سرياً من 6 أرقام':'الرقم السري'}" dir="ltr">
+ <button class="p" style="width:100%;margin-top:6px" onclick="${act?'activate()':'signin()'}">${act?'تفعيل':'دخول'}</button>
+ <p style="text-align:center"><a href="#" onclick="mode='${act?'in':'act'}';login();return false" style="color:var(--pr)">${act?'لدي حساب مفعّل':'أول مرة؟ فعّل حسابك'}</a></p></div>`}
+async function signin(){
+ const ph=$('ph').value,pin=$('pin').value;if(!ph||pin.length<6)return toast('أدخل الرقم والرقم السري (6 أرقام)');
+ const{error}=await db.auth.signInWithPassword({email:em(ph),password:pin});
+ if(error)return toast('الرقم أو الرقم السري غير صحيح');boot()}
+async function activate(){
+ const ph=$('ph').value,pin=$('pin').value,cd=$('cd').value.trim();
+ if(!ph||!cd||!/^\d{6}$/.test(pin))return toast('أكمل الحقول، والرقم السري 6 أرقام');
+ let r=await db.auth.signUp({email:em(ph),password:pin});
+ if(r.error&&/regist/i.test(r.error.message))r=await db.auth.signInWithPassword({email:em(ph),password:pin});
+ if(r.error||!r.data.session)return toast(r.error?'استخدم نفس الرقم السري السابق أو راجع العيادة':'يجب إيقاف تأكيد البريد في Supabase');
+ const s=await db.rpc('claim_patient',{p_phone:ph,p_code:cd});
+ const m={ok:'',bad:'الكود غير صحيح',none:'الرقم غير مسجل أو لا يوجد كود، راجع العيادة',locked:'تم قفل الكود، اطلب كوداً جديداً'}[s.data]||(s.error&&s.error.message);
+ if(m){await db.auth.signOut();return toast(m)}
+ toast('تم التفعيل');boot()}
+async function out(){await db.auth.signOut();location.reload()}
+
+async function load(){
+ const p=await db.from('patients').select('*').maybeSingle();P=p.data;
+ if(!P){A.innerHTML='<div class="c">هذا الحساب غير مفعّل بملف مريض.<br><br><button onclick="out()">خروج</button></div>';return}
+ const R=await Promise.all([
+  db.from('appointments').select('*').order('starts_at',{ascending:false}),
+  db.from('treatment_history').select('*').order('performed_at',{ascending:false}),
+  db.from('dental_treatments').select('*'),
+  db.from('payments').select('*').order('paid_at',{ascending:false}),
+  db.from('prescriptions').select('*,prescription_items(*)').order('created_at',{ascending:false}),
+  db.from('notifications').select('*').order('created_at',{ascending:false}).limit(5),
+  db.from('patient_balances').select('*').maybeSingle(),
+  db.from('services').select('*').eq('active',true),
+  db.from('doctors').select('*'),db.from('clinics').select('*').maybeSingle()]);
+ [aps,th,dt,py,rx,nt]=R.slice(0,6).map(x=>x.data||[]);bal=R[6].data||{};sv=R[7].data||[];dc=R[8].data||[];CL=R[9].data||{};render()}
+
+function render(){
+ const N=[['home','🏠 الرئيسية'],['book','➕ حجز'],['apt','📅 مواعيدي'],['teeth','🦷 أسناني'],['acc','💰 حسابي'],['rx','💊 وصفاتي'],['cn','📞 العيادة']];
+ const nav=N.map(([k,l])=>`<button class="${tab==k?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
+ const now=Date.now()-36e5,nx=aps.filter(a=>['booked','requested','waiting','in_treatment'].includes(a.status)&&new Date(a.starts_at)>=now).sort((a,b)=>a.starts_at>b.starts_at?1:-1)[0];
+ const ap=a=>`<div class="row"><span>${dtm(a.starts_at)}<small>${(sv.find(s=>s.id==a.service_id)||{}).name||''}</small></span><span class="tag">${SN[a.status]}</span></div>`;
+ let b='';
+ if(tab=='home')b=`<div class="c"><h3>أهلاً ${P.full_name} 👋</h3>${nx?`<div class="st" style="text-align:start"><span>موعدك القادم</span><b>${dtm(nx.starts_at)}</b><span class="tag">${SN[nx.status]}</span></div>`:'<div class="mu">لا يوجد موعد قادم</div>'}</div>
+ <div class="c"><h3>🔔 الإشعارات</h3>${nt.map(n=>`<div class="row"><span>${n.title||n.kind}<small>${dtm(n.created_at)}</small></span></div>`).join('')||'<div class="mu">لا إشعارات</div>'}</div>`;
+ if(tab=='book'){const d=new Date(Date.now()+864e5-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16);
+ b=`<div class="c"><h3>طلب حجز موعد</h3><select id="bs"><option value="">فحص عام</option>${sv.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select><select id="bd">${dc.map(x=>`<option value="${x.id}">${x.name}</option>`).join('')}</select><input id="bt" type="datetime-local" value="${d}"><button class="p" style="width:100%" onclick="book()">إرسال الطلب</button><p class="mu">سيصلك إشعار عند موافقة العيادة.</p></div>`}
+ if(tab=='apt')b=`<div class="c"><h3>مواعيدي</h3>${aps.map(ap).join('')||'<div class="mu">لا مواعيد</div>'}</div>`;
+ if(tab=='teeth'){const cur={};dt.forEach(x=>cur[x.tooth_number]=x.condition);
+ const tb=n=>{const c=cur[n];return`<button class="tt ${c?(c=='missing'||c=='extraction'?'x':'h'):''} ${to==n?'s':''}" onclick="to=${n};render()">${n}</button>`};
+ b=`<div class="c"><h3>مخطط أسناني</h3><div class="mu">الفك العلوي</div><div class="teeth">${UP.map(tb).join('')}</div><div class="mu">الفك السفلي</div><div class="teeth">${LO.map(tb).join('')}</div><div class="mu">للعرض فقط ولا يمكن تعديله</div></div>
+ ${to?`<div class="c"><h3>السن ${to}</h3>${th.filter(x=>x.tooth_number==to).map(x=>`<div class="row"><span>${CD[x.condition]||''}<small>${dd(x.performed_at)}</small></span></div>`).join('')||'<div class="mu">لا إجراءات</div>'}</div>`:''}`}
+ if(tab=='acc')b=`<div class="c"><div class="gr"><div class="st"><b>${money(bal.total_cost)}</b><span>التكلفة</span></div><div class="st"><b>${money(bal.total_paid)}</b><span>المدفوع</span></div><div class="st"><b>${money(bal.remaining)}</b><span>المتبقي</span></div></div></div>
+ <div class="c"><h3>الدفعات</h3>${py.map(x=>`<div class="row"><span>${dd(x.paid_at)}<small>${x.notes||''}</small></span><b>${money(x.amount)}</b></div>`).join('')||'<div class="mu">لا دفعات</div>'}</div>
+ <div class="c"><h3>العلاجات</h3>${th.map(x=>`<div class="row"><span>${CD[x.condition]||''}${x.tooth_number?' - سن '+x.tooth_number:''}<small>${dd(x.performed_at)}</small></span><b>${money(x.price)}</b></div>`).join('')||'<div class="mu">—</div>'}</div>`;
+ if(tab=='rx')b=rx.map(r=>`<div class="c"><h3>${dd(r.created_at)}</h3>${(r.prescription_items||[]).map(i=>`<div class="row"><span><b>${i.drug_name}</b><small>${[i.dose,i.times_per_day,i.duration].filter(Boolean).join(' - ')}</small></span></div>`).join('')}${r.instructions?`<p class="mu">${r.instructions}</p>`:''}</div>`).join('')||'<div class="c mu">لا توجد وصفات</div>';
+ if(tab=='cn'){const w=(CL.whatsapp||'').replace(/\D/g,'');b=`<div class="c"><h3>${CL.name||'العيادة'}</h3><p>${CL.address||''}</p><div style="display:flex;gap:8px;flex-wrap:wrap">${CL.phone?`<a class="b" href="tel:${CL.phone}">📞 اتصال</a>`:''}${w?`<a class="b" href="https://wa.me/${w}">💬 واتساب</a>`:''}${CL.lat?`<a class="b" href="https://maps.google.com/?q=${CL.lat},${CL.lng}">📍 الموقع</a>`:CL.address?`<a class="b" href="https://maps.google.com/?q=${encodeURIComponent(CL.address)}">📍 الموقع</a>`:''}</div>${!CL.phone&&!w&&!CL.address?'<p class="mu">لم تُسجّل العيادة بيانات التواصل بعد.</p>':''}</div><button onclick="out()" style="width:100%">تسجيل الخروج</button>`}
+ A.innerHTML=`<div class="nav">${nav}</div>${b}`}
+async function book(){
+ const r=await db.rpc('request_appointment',{p_service:$('bs').value||null,p_doctor:$('bd').value||null,p_time:new Date($('bt').value).toISOString()});
+ if(r.error)return toast('خطأ: '+r.error.message);toast('أُرسل طلبك');tab='apt';load()}
+boot();
+</script>
+</body>
+</html>
