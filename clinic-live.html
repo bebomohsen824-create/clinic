@@ -40,7 +40,7 @@ input,select{width:100%;padding:11px;margin:4px 0;border:1px solid var(--bd);bor
 const U='https://qmpkufewmjlggacjivfp.supabase.co',K='sb_publishable_FImCadKH3NWYFBYdUQW6Xg_gHdSCmLY';
 const db=supabase.createClient(U,K,{auth:{storageKey:'sb-doctor'}}),$=i=>document.getElementById(i),A=$('app');
 const SN={requested:'طلب حجز',booked:'محجوز',waiting:'ينتظر',in_treatment:'قيد العلاج',done:'انتهى',cancelled:'ألغى',no_show:'لم يحضر'};
-let me,pts=[],aps=[],qs=[],docs=[],scs=[],sv=[],tab='home',cn='',sp=null,to=null,th=[],dt=[],py=[],iv=[],bal=null;
+let me,pts=[],aps=[],qs=[],docs=[],scs=[],sv=[],tab='home',cn='',sp=null,to=null,th=[],dt=[],py=[],iv=[],bal=null,nt=[],rx=[],rp=null,dr=[],cl={};
 const toast=m=>{const e=document.createElement('div');e.className='t';e.textContent=m;document.body.append(e);setTimeout(()=>e.remove(),2200)};
 const ok=async p=>{const r=await p;if(r.error){toast('خطأ: '+r.error.message);throw r.error}return r.data};
 const pn=id=>(pts.find(p=>p.id==id)||{}).full_name||'';
@@ -53,7 +53,7 @@ async function boot(){
  if(!session)return login();
  const r=await db.from('users').select('*').eq('id',session.user.id).maybeSingle();
  if(!r.data)return A.innerHTML='<div class="c">الحساب غير مرتبط بعيادة.<br><button onclick="out()">خروج</button></div>';
- me=r.data;const cc=await db.from('clinics').select('name').eq('id',me.clinic_id).maybeSingle();cn=(cc.data||{}).name||'العيادة';await load();
+ me=r.data;const cc=await db.from('clinics').select('*').eq('id',me.clinic_id).maybeSingle();cl=cc.data||{};cn=cl.name||'العيادة';await load();
  db.channel('live').on('postgres_changes',{event:'*',schema:'public',table:'waiting_queue'},load)
   .on('postgres_changes',{event:'*',schema:'public',table:'appointments'},load).subscribe();
 }
@@ -63,27 +63,27 @@ async function out(){await db.auth.signOut();location.reload()}
 
 async function load(){
  const d0=new Date();d0.setHours(0,0,0,0);
- const[p,a,q,d,s,v]=await Promise.all([
+ const[p,a,q,d,s,v,nn]=await Promise.all([
   db.from('patients').select('*').order('created_at',{ascending:false}),
   db.from('appointments').select('*').gte('starts_at',d0.toISOString()).order('starts_at'),
   db.from('waiting_queue').select('*').eq('queue_date',d0.toLocaleDateString('en-CA')).order('queue_no'),
-  db.from('doctors').select('*'),db.from('display_screens').select('*'),db.from('services').select('*').eq('active',true)]);
- pts=p.data||[];aps=a.data||[];qs=q.data||[];docs=d.data||[];scs=s.data||[];sv=v.data||[];await loadP();render()}
+  db.from('doctors').select('*'),db.from('display_screens').select('*'),db.from('services').select('*').order('name'),db.from('notifications').select('*').eq('user_id',me.id).order('created_at',{ascending:false}).limit(8)]);
+ pts=p.data||[];aps=a.data||[];qs=q.data||[];docs=d.data||[];scs=s.data||[];sv=v.data||[];nt=nn.data||[];await loadP();render()}
 
 function render(){
- const N=[['home','🏠 الرئيسية'],['pat','👥 المرضى'],['apt','📅 المواعيد'],['wait','⏳ الانتظار'],['teeth','🦷 الأسنان'],['acc','💰 الحسابات'],['inv','🧾 الفواتير'],['set','⚙️ الشاشة']];
+ const N=[['home','🏠 الرئيسية'],['pat','👥 المرضى'],['apt','📅 المواعيد'],['wait','⏳ الانتظار'],['teeth','🦷 الأسنان'],['acc','💰 الحسابات'],['inv','🧾 الفواتير'],['file','📁 الملف'],['rxs','💊 الوصفات'],['srv','💲 الأسعار'],['rep','📊 التقارير'],['set','⚙️ الشاشة']];
  const nav=N.map(([k,l])=>`<button class="${tab==k?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
  const today=aps.filter(a=>new Date(a.starts_at).toDateString()==new Date().toDateString());
  const rq=aps.filter(a=>a.status=='requested');let b='';
  if(tab=='home')b=`<div class="gr"><div class="st"><b>${today.length}</b><span>مواعيد اليوم</span></div><div class="st"><b>${qs.filter(x=>x.status=='waiting').length}</b><span>ينتظرون</span></div><div class="st"><b>${pts.length}</b><span>المرضى</span></div><div class="st"><b>${rq.length}</b><span>طلبات حجز</span></div></div>
- <div class="c" style="margin-top:12px"><h3>🔔 طلبات الحجز</h3>${rq.map(a=>`<div class="row"><span>${pn(a.patient_id)}<small>${new Date(a.starts_at).toLocaleString('ar')}</small></span><span class="a"><button class="g" onclick="setS('${a.id}','booked')">قبول</button><button class="r" onclick="setS('${a.id}','cancelled')">رفض</button></span></div>`).join('')||'<div class="mu">لا توجد طلبات</div>'}</div>`;
+ <div class="c" style="margin-top:12px"><h3>🔔 طلبات الحجز</h3>${rq.map(a=>`<div class="row"><span>${pn(a.patient_id)}<small>${new Date(a.starts_at).toLocaleString('ar')}</small></span><span class="a"><button class="g" onclick="setS('${a.id}','booked')">قبول</button><button class="r" onclick="setS('${a.id}','cancelled')">رفض</button></span></div>`).join('')||'<div class="mu">لا توجد طلبات</div>'}</div><div class="c"><h3>🔔 الإشعارات</h3>${nt.map(n=>`<div class="row"><span>${n.title||n.kind}<small>${new Date(n.created_at).toLocaleString('ar')}</small></span></div>`).join('')||'<div class="mu">لا إشعارات</div>'}</div>`;
  if(tab=='pat')b=`<div class="c"><h3>مريض جديد</h3><input id="n" placeholder="الاسم الكامل"><input id="ph" placeholder="الهاتف" inputmode="tel"><button class="p" onclick="addP()">حفظ</button></div><div class="c">${pts.map(p=>`<div class="row"><span>#${p.file_no} ${p.full_name}<small>${p.phone||''}</small></span>${p.user_id?'<span class="mu">✅ مفعّل</span>':`<button onclick="act('${p.id}')">🔑 كود تفعيل</button>`}</div>`).join('')||'<div class="mu">لا مرضى بعد</div>'}</div>`;
  if(tab=='apt'){const dt=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16);
  b=`<div class="c"><h3>موعد جديد</h3><select id="ap">${pts.map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('')}</select><input id="at" type="datetime-local" value="${dt}"><button class="p" onclick="addA()">حجز</button></div>
- <div class="c"><h3>المواعيد</h3>${aps.filter(a=>a.status!='requested').map(a=>`<div class="row"><span>${pn(a.patient_id)}<small>${new Date(a.starts_at).toLocaleString('ar')}</small></span><span class="a"><span class="mu">${SN[a.status]}</span>${a.status=='booked'?`<button class="g" onclick="chk('${a.id}')">حضر</button>`:''}</span></div>`).join('')||'<div class="mu">—</div>'}</div>`}
+ <div class="c"><h3>المواعيد</h3>${aps.filter(a=>a.status!='requested').map(a=>`<div class="row"><span>${pn(a.patient_id)}<small>${new Date(a.starts_at).toLocaleString('ar')}</small></span><span class="a"><span class="mu">${SN[a.status]}</span>${a.status=='booked'?`<button class="g" onclick="chk('${a.id}')">حضر</button><button class="r" onclick="setS('${a.id}','cancelled')">إلغاء</button><button onclick="setS('${a.id}','no_show')">لم يحضر</button>`:''}</span></div>`).join('')||'<div class="mu">—</div>'}</div>`}
  if(tab=='wait')b=`<div class="c"><h3>قائمة الانتظار</h3>${qs.filter(x=>x.status!='done').map(x=>`<div class="row"><span>رقم ${x.queue_no} - ${pn(x.patient_id)}<small>${x.status=='called'?'تم الاستدعاء':'ينتظر'}</small></span>${x.status=='waiting'?`<button class="p" onclick="cal('${x.id}')">📣 استدعاء</button>`:`<button class="g" onclick="fin('${x.id}','${x.appointment_id}')">انتهى</button>`}</div>`).join('')||'<div class="mu">القائمة فارغة</div>'}</div>`;
- if(tab=='teeth')b=teethUI();if(tab=='acc')b=accUI();if(tab=='inv')b=invUI();
- if(tab=='set')b=`<div class="c"><h3>شاشة العرض</h3>${scs.map(s=>{const l=location.href.split('#')[0]+'#screen='+s.id;return`<p>${s.name}</p><input readonly dir="ltr" value="${l}" onclick="this.select()"><select onchange="priv('${s.id}',this.value)">${[['full_name','الاسم الكامل'],['first_name','الاسم الأول'],['number_only','رقم الدور فقط']].map(([k,v])=>`<option value="${k}" ${s.privacy==k?'selected':''}>${v}</option>`).join('')}</select>`}).join('')}<p class="mu">افتح الرابط على تلفاز العيادة.</p></div><button class="r" onclick="out()">تسجيل الخروج</button>`;
+ if(tab=='teeth')b=teethUI();if(tab=='acc')b=accUI();if(tab=='inv')b=invUI();if(tab=='srv')b=srvUI();if(tab=='file')b=fileUI();if(tab=='rxs')b=rxUI();if(tab=='rep')b=repUI();
+ if(tab=='set')b=`<div class="c"><h3>شاشة العرض</h3>${scs.map(s=>{const l=location.href.split('#')[0]+'#screen='+s.id;return`<p>${s.name}</p><input readonly dir="ltr" value="${l}" onclick="this.select()"><select onchange="priv('${s.id}',this.value)">${[['full_name','الاسم الكامل'],['first_name','الاسم الأول'],['number_only','رقم الدور فقط']].map(([k,v])=>`<option value="${k}" ${s.privacy==k?'selected':''}>${v}</option>`).join('')}</select>`}).join('')}<p class="mu">افتح الرابط على تلفاز العيادة.</p></div><div class="c"><h3>بيانات العيادة</h3><input id="cn1" value="${cl.name||''}" placeholder="اسم العيادة"><input id="cp1" value="${cl.phone||''}" placeholder="هاتف العيادة" inputmode="tel"><input id="cw1" value="${cl.whatsapp||''}" placeholder="واتساب (بصيغة دولية)"><input id="ca1" value="${cl.address||''}" placeholder="العنوان"><button class="p" style="width:100%" onclick="saveCl()">حفظ</button></div><button style="width:100%;margin-bottom:8px" onclick="backup()">⬇️ نسخة احتياطية (JSON)</button><button class="r" onclick="out()">تسجيل الخروج</button>`;
  A.innerHTML=`<div class="nav">${nav}</div>${b}`}
 
 const setS=async(id,s)=>{await ok(db.from('appointments').update({status:s}).eq('id',id));toast('تم')};
@@ -93,54 +93,55 @@ const fin=async(q,a)=>{await ok(db.from('waiting_queue').update({status:'done'})
 const priv=async(id,v)=>{await ok(db.from('display_screens').update({privacy:v}).eq('id',id));toast('تم الحفظ')};
 async function act(id){const c=await ok(db.rpc('new_activation_code',{p_patient:id}));prompt('أعطِ المريض هذا الكود (يُستخدم مرة واحدة):',c)}
 async function addP(){const n=$('n').value.trim();if(!n)return;await ok(db.from('patients').insert({clinic_id:me.clinic_id,full_name:n,phone:$('ph').value.trim()}));toast('تمت الإضافة');load()}
-async function addA(){if(!$('ap').value)return toast('أضف مريضاً أولاً');await ok(db.from('appointments').insert({clinic_id:me.clinic_id,patient_id:$('ap').value,doctor_id:docs[0]&&docs[0].id,starts_at:new Date($('at').value).toISOString(),status:'booked'}));toast('تم الحجز');load()}
+async function addA(){if(!$('ap').value)return toast('أضف مريضاً أولاً');const t=new Date($('at').value).getTime();if(aps.some(a=>!['cancelled','no_show'].includes(a.status)&&a.doctor_id==(docs[0]&&docs[0].id)&&Math.abs(new Date(a.starts_at)-t)<18e5)&&!confirm('يوجد موعد آخر قريب من هذا الوقت. متابعة؟'))return;await ok(db.from('appointments').insert({clinic_id:me.clinic_id,patient_id:$('ap').value,doctor_id:docs[0]&&docs[0].id,starts_at:new Date($('at').value).toISOString(),status:'booked'}));toast('تم الحجز');load()}
 
 
 const CD={filling:'حشوة',root_canal:'علاج عصب',extraction:'خلع',cleaning:'تنظيف',crown:'تلبيسة',bridge:'جسر',implant:'زرعة',braces:'تقويم',missing:'سن مفقود',decay:'تسوس',fracture:'كسر',other:'أخرى'};
 const MD={cash:'نقداً',card:'بطاقة',transfer:'تحويل'};
+const RC=Object.fromEntries(Object.entries(CD).map(([k,v])=>[v,k])),sn=x=>{const s=sv.find(v=>v.id==x.service_id);return s?s.name:(sn(x))};
 const UP=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28],LO=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
 const money=n=>Number(n||0).toLocaleString('en'),dd=s=>new Date(s).toLocaleDateString('ar');
 async function loadP(){
  if(!sp&&pts[0])sp=pts[0].id;if(!sp)return;
- const[a,b,c,d,e]=await Promise.all([
+ const[a,b,c,d,e,f]=await Promise.all([
   db.from('treatment_history').select('*').eq('patient_id',sp).order('performed_at',{ascending:false}),
   db.from('dental_treatments').select('*').eq('patient_id',sp),
   db.from('payments').select('*').eq('patient_id',sp).order('paid_at',{ascending:false}),
   db.from('invoices').select('*').eq('patient_id',sp).order('created_at',{ascending:false}),
-  db.from('patient_balances').select('*').eq('patient_id',sp).maybeSingle()]);
- th=a.data||[];dt=b.data||[];py=c.data||[];iv=d.data||[];bal=e.data}
-const pSel=()=>`<select onchange="sp=this.value;to=null;loadP().then(render)">${pts.map(p=>`<option value="${p.id}" ${p.id==sp?'selected':''}>${p.full_name}</option>`).join('')}</select>`;
+  db.from('patient_balances').select('*').eq('patient_id',sp).maybeSingle(),db.from('prescriptions').select('*,prescription_items(*)').eq('patient_id',sp).order('created_at',{ascending:false})]);
+ th=a.data||[];dt=b.data||[];py=c.data||[];iv=d.data||[];bal=e.data;rx=f.data||[]}
+const pSel=()=>`<select onchange="sp=this.value;to=null;dr=[];loadP().then(render)">${pts.map(p=>`<option value="${p.id}" ${p.id==sp?'selected':''}>${p.full_name}</option>`).join('')}</select>`;
 const none='<div class="c mu">أضف مريضاً أولاً من تبويب المرضى</div>';
 function teethUI(){
  if(!pts.length)return none;
  const cur={};dt.forEach(x=>cur[x.tooth_number]=x.condition);
  const tb=n=>{const c=cur[n];return`<button class="tt ${c?(c=='missing'||c=='extraction'?'x':'h'):''} ${to==n?'s':''}" onclick="to=${n};render()">${n}</button>`};
  const hs=th.filter(x=>x.tooth_number==to);
- return`<div class="c">${pSel()}<div class="mu">الفك العلوي</div><div class="teeth">${UP.map(tb).join('')}</div><div class="mu">الفك السفلي</div><div class="teeth">${LO.map(tb).join('')}</div></div>`+(to?`<div class="c"><h3>السن ${to}</h3>${hs.map(x=>`<div class="row"><span>${CD[x.condition]||''}<small>${dd(x.performed_at)}${x.notes?' - '+x.notes:''}</small></span><b>${money(x.price)}</b></div>`).join('')||'<div class="mu">لا توجد إجراءات سابقة</div>'}<select id="cd" onchange="prc()">${Object.entries(CD).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select><input id="pc" type="number" placeholder="السعر (يؤخذ من الخدمات إن تُرك فارغاً)"><input id="nt" placeholder="ملاحظات"><button class="p" style="width:100%" onclick="addT()">حفظ الإجراء</button></div>`:'<div class="c mu">اختر سناً من المخطط</div>')}
-function prc(){const s=sv.find(x=>x.name==CD[$('cd').value]);$('pc').value=s?s.default_price:''}
+ return`<div class="c">${pSel()}<div class="mu">الفك العلوي</div><div class="teeth">${UP.map(tb).join('')}</div><div class="mu">الفك السفلي</div><div class="teeth">${LO.map(tb).join('')}</div></div>`+(to?`<div class="c"><h3>السن ${to}</h3>${hs.map(x=>`<div class="row"><span>${sn(x)}<small>${dd(x.performed_at)}${x.notes?' - '+x.notes:''}</small></span><b>${money(x.price)}</b></div>`).join('')||'<div class="mu">لا توجد إجراءات سابقة</div>'}<select id="cd" onchange="prc()">${sv.filter(s=>s.active).map(s=>`<option value="${s.id}">${s.name} - ${money(s.default_price)}</option>`).join('')}</select><input id="pc" type="number" placeholder="السعر (يؤخذ من الخدمات إن تُرك فارغاً)"><input id="nt" placeholder="ملاحظات"><button class="p" style="width:100%" onclick="addT()">حفظ الإجراء</button></div>`:'<div class="c mu">اختر سناً من المخطط</div>')}
+function prc(){const s=sv.find(x=>x.id==$('cd').value);$('pc').value=s?s.default_price:''}
 async function addT(){
- const c=$('cd').value,s=sv.find(x=>x.name==CD[c]),pc=$('pc').value,price=pc!==''?+pc:(s?+s.default_price:0);
+ const s=sv.find(x=>x.id==$('cd').value);if(!s)return toast('أضف إجراءً من تبويب الأسعار');const c=RC[s.name]||'other',pc=$('pc').value,price=pc!==''?+pc:+s.default_price;
  await ok(db.from('treatment_history').insert({clinic_id:me.clinic_id,patient_id:sp,tooth_number:to,service_id:s?s.id:null,condition:c,doctor_id:docs[0]&&docs[0].id,price,notes:$('nt').value.trim()||null}));
  await ok(db.from('dental_treatments').upsert({clinic_id:me.clinic_id,patient_id:sp,tooth_number:to,condition:c,updated_at:new Date().toISOString()},{onConflict:'patient_id,tooth_number'}));
  toast('تم الحفظ');await loadP();render()}
 function accUI(){
  if(!pts.length)return none;const b=bal||{};
- return`<div class="c">${pSel()}<div class="gr" style="margin-top:8px"><div class="st"><b>${money(b.total_cost)}</b><span>التكلفة</span></div><div class="st"><b>${money(b.total_paid)}</b><span>المدفوع</span></div><div class="st"><b>${money(b.remaining)}</b><span>المتبقي</span></div></div></div>
+ return`<div class="c">${pSel()}<div class="gr" style="margin-top:8px"><div class="st"><b>${money(b.total_cost)}</b><span>التكلفة</span></div><div class="st"><b>${money(b.total_paid)}</b><span>المدفوع</span></div><div class="st"><b>${money(Math.abs(b.remaining))}</b><span>${b.remaining<0?'رصيد للمريض':'المتبقي'}</span></div></div></div>
  <div class="c"><h3>دفعة جديدة</h3><input id="am" type="number" placeholder="المبلغ"><select id="md">${Object.entries(MD).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select><input id="pn" placeholder="ملاحظات"><button class="g" style="width:100%" onclick="addPy()">تسجيل الدفعة</button></div>
- <div class="c"><h3>الدفعات</h3>${py.map(x=>`<div class="row"><span>${dd(x.paid_at)}<small>${MD[x.method]||x.method||''}${x.notes?' - '+x.notes:''}</small></span><b>${money(x.amount)}</b></div>`).join('')||'<div class="mu">لا دفعات</div>'}</div>
- <div class="c"><h3>العلاجات</h3>${th.map(x=>`<div class="row"><span>${CD[x.condition]||''}${x.tooth_number?' - سن '+x.tooth_number:''}<small>${dd(x.performed_at)}</small></span><b>${money(x.price)}</b></div>`).join('')||'<div class="mu">لا علاجات</div>'}</div>`}
+ <div class="c"><h3>الدفعات</h3>${py.map(x=>`<div class="row"><span>${dd(x.paid_at)}<small>${MD[x.method]||x.method||''}${x.notes?' - '+x.notes:''}</small></span><span class="a"><b>${money(x.amount)}</b><button class="r" onclick="delPy('${x.id}')">حذف</button></span></div>`).join('')||'<div class="mu">لا دفعات</div>'}</div>
+ <div class="c"><h3>العلاجات</h3>${th.map(x=>`<div class="row"><span>${sn(x)}${x.tooth_number?' - سن '+x.tooth_number:''}<small>${dd(x.performed_at)}</small></span><span class="a"><b>${money(x.price)}</b><button class="r" onclick="delTh('${x.id}')">حذف</button></span></div>`).join('')||'<div class="mu">لا علاجات</div>'}</div>`}
 async function addPy(){const a=+$('am').value;if(!(a>0))return toast('أدخل مبلغاً صحيحاً');
  await ok(db.from('payments').insert({clinic_id:me.clinic_id,patient_id:sp,amount:a,method:$('md').value,notes:$('pn').value.trim()||null,received_by:me.id}));
  toast('سُجّلت الدفعة');await loadP();render()}
 const unbilled=()=>{const u=new Set(iv.flatMap(i=>(i.items||[]).map(x=>x.id)));return th.filter(x=>!u.has(x.id)&&Number(x.price)>0)};
 function invUI(){
  if(!pts.length)return none;const nw=unbilled(),sub=nw.reduce((s,x)=>s+Number(x.price),0);
- return`<div class="c">${pSel()}</div><div class="c"><h3>فاتورة جديدة</h3>${nw.map(x=>`<div class="row"><span>${CD[x.condition]||''}${x.tooth_number?' - سن '+x.tooth_number:''}</span><b>${money(x.price)}</b></div>`).join('')||'<div class="mu">لا توجد علاجات غير مفوترة</div>'}${nw.length?`<input id="ds" type="number" placeholder="الخصم (اختياري)"><button class="p" style="width:100%" onclick="mkInv()">إنشاء فاتورة (${money(sub)})</button>`:''}</div>
+ return`<div class="c">${pSel()}</div><div class="c"><h3>فاتورة جديدة</h3>${nw.map(x=>`<div class="row"><span>${sn(x)}${x.tooth_number?' - سن '+x.tooth_number:''}</span><b>${money(x.price)}</b></div>`).join('')||'<div class="mu">لا توجد علاجات غير مفوترة</div>'}${nw.length?`<input id="ds" type="number" placeholder="الخصم (اختياري)"><button class="p" style="width:100%" onclick="mkInv()">إنشاء فاتورة (${money(sub)})</button>`:''}</div>
  <div class="c"><h3>الفواتير السابقة</h3>${iv.map(i=>`<div class="row"><span>فاتورة #${i.invoice_no}<small>${dd(i.created_at)}</small></span><span class="a"><b>${money(i.total)}</b><button onclick="showInv('${i.id}')">عرض</button></span></div>`).join('')||'<div class="mu">—</div>'}</div>`}
 async function mkInv(){
  const nw=unbilled(),sub=nw.reduce((s,x)=>s+Number(x.price),0),ds=+$('ds').value||0;
  if(ds<0||ds>sub)return toast('الخصم غير صحيح');
- const r=await ok(db.from('invoices').insert({clinic_id:me.clinic_id,patient_id:sp,items:nw.map(x=>({id:x.id,service:CD[x.condition]||'',tooth:x.tooth_number,price:+x.price})),subtotal:sub,discount:ds}).select().single());
+ const r=await ok(db.from('invoices').insert({clinic_id:me.clinic_id,patient_id:sp,items:nw.map(x=>({id:x.id,service:sn(x),tooth:x.tooth_number,price:+x.price})),subtotal:sub,discount:ds}).select().single());
  toast('تم إنشاء الفاتورة');await loadP();render();showInv(r.id)}
 function showInv(id){
  const i=iv.find(x=>x.id==id);if(!i)return;const b=bal||{},p=pts.find(x=>x.id==sp)||{};
@@ -157,6 +158,58 @@ async function shareInv(id){
  const t=`${cn}\nفاتورة رقم ${i.invoice_no} - ${dd(i.created_at)}\nالمريض: ${pn(sp)}\n`+(i.items||[]).map(x=>`${x.service}${x.tooth?' (سن '+x.tooth+')':''}: ${money(x.price)}`).join('\n')+`\nالخصم: ${money(i.discount)}\nالإجمالي: ${money(i.total)}\nالمدفوع: ${money(b.total_paid)}\nالمتبقي: ${money(b.remaining)}`;
  try{if(navigator.share)await navigator.share({text:t});else{await navigator.clipboard.writeText(t);toast('تم النسخ')}}catch(e){}}
 
+
+function srvUI(){
+ return`<div class="c"><h3>إضافة إجراء</h3><input id="sn" placeholder="اسم الإجراء (مثل: حشوة ضوئية)"><input id="sp" type="number" placeholder="السعر"><button class="p" style="width:100%" onclick="addSv()">إضافة</button></div>
+ <div class="c"><h3>قائمة الأسعار</h3>${sv.map(s=>`<div class="row" style="opacity:${s.active?1:.5}"><span>${s.name}</span><span class="a"><input type="number" value="${s.default_price}" style="width:100px;margin:0" onchange="upSv('${s.id}',this.value)"><button onclick="tgSv('${s.id}',${!s.active})">${s.active?'إخفاء':'إظهار'}</button></span></div>`).join('')||'<div class="mu">لا توجد إجراءات</div>'}
+ <p class="mu">تغيير السعر يسري على الإجراءات الجديدة فقط، والسابقة تحتفظ بسعرها. الإجراء المخفي لا يظهر للمريض ولا عند التسجيل.</p><button style="width:100%" onclick="addStd()">+ إضافة الإجراءات الشائعة الناقصة (بسعر 0)</button></div>`}
+async function addSv(){const n=$('sn').value.trim(),v=$('sp').value;if(!n||v===''||+v<0)return toast('أدخل الاسم والسعر');await ok(db.from('services').insert({clinic_id:me.clinic_id,name:n,default_price:+v}));toast('تمت الإضافة');load()}
+async function upSv(id,v){if(v===''||+v<0)return toast('سعر غير صحيح');await ok(db.from('services').update({default_price:+v}).eq('id',id));toast('تم تحديث السعر');load()}
+async function tgSv(id,a){await ok(db.from('services').update({active:a}).eq('id',id));load()}
+async function addStd(){const have=new Set(sv.map(s=>s.name)),rows=Object.values(CD).filter(n=>n!='أخرى'&&!have.has(n)).map(n=>({clinic_id:me.clinic_id,name:n,default_price:0}));if(!rows.length)return toast('كلها موجودة');await ok(db.from('services').insert(rows));toast('أُضيفت، حدّد أسعارها');load()}
+
+function fileUI(){
+ if(!pts.length)return none;const p=pts.find(x=>x.id==sp)||{};
+ const fi=(id,l,v,t)=>`<label class="mu">${l}</label><input id="${id}" type="${t||'text'}" value="${String(v||'').replace(/"/g,'&quot;')}">`;
+ return`<div class="c">${pSel()}</div>${p.drug_allergies?`<div class="c" style="border-color:var(--er)">⚠️ حساسية الأدوية: <b>${p.drug_allergies}</b></div>`:''}
+ <div class="c"><h3>البيانات الشخصية</h3>${fi('fn','الاسم',p.full_name)}${fi('fp','الهاتف',p.phone,'tel')}${fi('fb','تاريخ الميلاد',p.birth_date,'date')}<label class="mu">الجنس</label><select id="fg"><option value="">—</option><option value="male" ${p.gender=='male'?'selected':''}>ذكر</option><option value="female" ${p.gender=='female'?'selected':''}>أنثى</option></select>${fi('fa','العنوان',p.address)}${fi('fo','ملاحظات عامة',p.notes)}</div>
+ <div class="c"><h3>التاريخ الطبي</h3>${fi('mc','الأمراض المزمنة',p.chronic_diseases)}${fi('ma','الحساسية من الأدوية',p.drug_allergies)}${fi('mm','الأدوية المستخدمة',p.current_medications)}${fi('ms','العمليات السابقة',p.past_surgeries)}${fi('mn','ملاحظات طبية',p.medical_notes)}<button class="p" style="width:100%;margin-top:8px" onclick="saveP()">حفظ الملف</button></div>`}
+async function saveP(){const g=i=>$(i).value.trim()||null;
+ await ok(db.from('patients').update({full_name:$('fn').value.trim(),phone:g('fp'),birth_date:$('fb').value||null,gender:$('fg').value||null,address:g('fa'),notes:g('fo'),chronic_diseases:g('mc'),drug_allergies:g('ma'),current_medications:g('mm'),past_surgeries:g('ms'),medical_notes:g('mn')}).eq('id',sp));toast('تم الحفظ');await load()}
+function rxUI(){
+ if(!pts.length)return none;const p=pts.find(x=>x.id==sp)||{},it=i=>[i.dose,i.times_per_day,i.duration].filter(Boolean).join(' - ');
+ return`<div class="c">${pSel()}${p.drug_allergies?`<p style="color:var(--er)">⚠️ حساسية: <b>${p.drug_allergies}</b></p>`:''}</div>
+ <div class="c"><h3>وصفة جديدة</h3><input id="rn" placeholder="اسم الدواء"><input id="rd" placeholder="الجرعة (مثل 500mg)"><input id="rt" placeholder="مرات الاستخدام (مثل 3 مرات يومياً)"><input id="ru" placeholder="المدة (مثل 5 أيام)"><button style="width:100%" onclick="addDr()">+ إضافة الدواء للوصفة</button>
+ ${dr.map((x,i)=>`<div class="row"><span><b>${x.drug_name}</b><small>${it(x)}</small></span><button class="r" onclick="dr.splice(${i},1);render()">✕</button></div>`).join('')}
+ <input id="ri" placeholder="تعليمات الطبيب"><button class="p" style="width:100%" onclick="saveRx()">حفظ الوصفة</button></div>
+ <div class="c"><h3>الوصفات السابقة</h3>${rx.map(r=>`<div class="row" style="display:block"><b>${dd(r.created_at)}</b>${(r.prescription_items||[]).map(i=>`<div>${i.drug_name} <small class="mu">${it(i)}</small></div>`).join('')}${r.instructions?`<small class="mu">${r.instructions}</small>`:''}</div>`).join('')||'<div class="mu">—</div>'}</div>`}
+function addDr(){const n=$('rn').value.trim();if(!n)return toast('اكتب اسم الدواء');dr.push({drug_name:n,dose:$('rd').value.trim()||null,times_per_day:$('rt').value.trim()||null,duration:$('ru').value.trim()||null});render()}
+async function saveRx(){if(!dr.length)return toast('أضف دواءً أولاً');
+ const r=await ok(db.from('prescriptions').insert({clinic_id:me.clinic_id,patient_id:sp,doctor_id:docs[0]&&docs[0].id,instructions:$('ri').value.trim()||null}).select().single());
+ await ok(db.from('prescription_items').insert(dr.map(x=>({...x,prescription_id:r.id}))));dr=[];toast('حُفظت الوصفة');await loadP();render()}
+async function loadRep(){
+ const[a,b,c,d]=await Promise.all([db.from('payments').select('amount,paid_at'),db.from('treatment_history').select('service_id,condition,performed_at'),db.from('appointments').select('patient_id,starts_at,status'),db.from('patient_balances').select('patient_id,remaining')]);
+ rp={pay:a.data||[],th:b.data||[],ap:c.data||[],bl:d.data||[]};render()}
+function repUI(){
+ if(!rp){loadRep();return'<div class="c mu">جارٍ التحميل…</div>'}
+ const now=new Date(),ym=d=>d.getFullYear()+'-'+d.getMonth(),M=ym(now),sum=l=>l.reduce((s,x)=>s+Number(x.amount),0);
+ const pd=rp.pay.filter(x=>new Date(x.paid_at).toDateString()==now.toDateString()),pm=rp.pay.filter(x=>ym(new Date(x.paid_at))==M);
+ const done=rp.ap.filter(a=>a.status=='done'),dm=done.filter(a=>ym(new Date(a.starts_at))==M),debt=rp.bl.reduce((s,x)=>s+Math.max(0,Number(x.remaining)),0);
+ const cnt={};rp.th.forEach(x=>{const s=sv.find(v=>v.id==x.service_id),n=s?s.name:(CD[x.condition]||'أخرى');cnt[n]=(cnt[n]||0)+1});
+ const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5),newp=pts.filter(p=>ym(new Date(p.created_at))==M).length;
+ const last={};done.forEach(a=>{if(!last[a.patient_id]||a.starts_at>last[a.patient_id])last[a.patient_id]=a.starts_at});
+ const lost=pts.filter(p=>Date.now()-new Date(last[p.id]||p.created_at)>90*864e5);
+ return`<div class="gr"><div class="st"><b>${money(sum(pd))}</b><span>إيراد اليوم</span></div><div class="st"><b>${money(sum(pm))}</b><span>إيراد الشهر</span></div><div class="st"><b>${money(debt)}</b><span>الديون</span></div><div class="st"><b>${dm.length}</b><span>زيارات الشهر</span></div><div class="st"><b>${pts.length}</b><span>المرضى</span></div><div class="st"><b>${newp}</b><span>مرضى جدد</span></div></div>
+ <div class="c" style="margin-top:12px"><h3>أكثر العلاجات استخداماً</h3>${top.map(([n,c])=>`<div class="row"><span>${n}</span><b>${c}</b></div>`).join('')||'<div class="mu">—</div>'}</div>
+ <div class="c"><h3>لم يراجعوا منذ 90 يوماً (${lost.length})</h3>${lost.map(p=>`<div class="row"><span>${p.full_name}<small>${p.phone||''}</small></span>${p.phone?`<button onclick="location.href='tel:${p.phone}'">📞</button>`:''}</div>`).join('')||'<div class="mu">لا أحد</div>'}</div>
+ <button style="width:100%" onclick="rp=null;render()">🔄 تحديث التقارير</button>`}
+async function delPy(id){if(!confirm('حذف هذه الدفعة؟'))return;await ok(db.from('payments').delete().eq('id',id));toast('حُذفت');await loadP();render()}
+async function delTh(id){if(!confirm('حذف هذا الإجراء؟ سيُخصم من التكلفة.'))return;await ok(db.from('treatment_history').delete().eq('id',id));toast('حُذف');await loadP();render()}
+async function saveCl(){const g=i=>$(i).value.trim()||null,n=$('cn1').value.trim()||cl.name;
+ await ok(db.from('clinics').update({name:n,phone:g('cp1'),whatsapp:g('cw1'),address:g('ca1')}).eq('id',me.clinic_id));cl={...cl,name:n,phone:g('cp1'),whatsapp:g('cw1'),address:g('ca1')};cn=n;toast('تم الحفظ')}
+async function backup(){const T=['patients','appointments','treatment_history','dental_treatments','payments','invoices','prescriptions','prescription_items','services'],o={};
+ for(const t of T){const r=await db.from(t).select('*');o[t]=r.data||[]}
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));a.download='clinic-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 async function screen(id){
  let last=null;
  const draw=f=>{f=f||{};const nx=f.next_list||[];
