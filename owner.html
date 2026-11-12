@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة المالك</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{--bg:#f3f7f8;--cd:#fff;--tx:#12303a;--mu:#6b8590;--pr:#0f8b8d;--p2:#e1f3f3;--bd:#dbe6e9;--ok:#2e9e5b;--er:#d9534f;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1c21;--cd:#16282f;--tx:#e6f1f3;--mu:#8fa8b1;--pr:#2bb3b5;--p2:#17383b;--bd:#264047;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px Tahoma,Arial,sans-serif;padding-top:env(safe-area-inset-top,0)}
+.w{max-width:700px;margin:auto;padding:12px}
+button,input{font:inherit;color:inherit}
+button{background:var(--p2);color:var(--pr);border:0;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
+button.p{background:var(--pr);color:#fff}button.r{background:var(--er);color:#fff}button.g{background:var(--ok);color:#fff}
+input{width:100%;padding:11px;margin:4px 0;border:1px solid var(--bd);border-radius:10px;background:var(--cd)}
+.c{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+.gr{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.st{background:var(--p2);border-radius:12px;padding:12px}.st b{display:block;font-size:22px;color:var(--pr)}.st span{color:var(--mu);font-size:13px}
+.a{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.mu{color:var(--mu)}
+.tag{padding:3px 10px;border-radius:20px;font-size:12px;background:var(--p2);color:var(--pr)}.tag.x{background:var(--er);color:#fff}
+.t{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:20px}
+</style>
+</head>
+<body>
+<div class="w" id="app">جارٍ التحميل…</div>
+<script>
+const U='https://qmpkufewmjlggacjivfp.supabase.co',K='sb_publishable_FImCadKH3NWYFBYdUQW6Xg_gHdSCmLY';
+const db=supabase.createClient(U,K,{auth:{storageKey:'sb-owner'}}),$=i=>document.getElementById(i),A=$('app');
+let L=[];
+const toast=m=>{const e=document.createElement('div');e.className='t';e.textContent=m;document.body.append(e);setTimeout(()=>e.remove(),2500)};
+const money=n=>Number(n||0).toLocaleString('en'),dd=s=>new Date(s).toLocaleDateString('ar');
+const eff=c=>c.status=='suspended'?'موقوف':(new Date(c.period_end).getTime()+3*864e5<Date.now()?'منتهي':c.status=='trial'?'تجريبي':'فعّال');
+async function boot(){
+ const{data:{session}}=await db.auth.getSession();
+ if(!session)return A.innerHTML=`<div class="c" style="margin-top:10vh"><h3>👑 لوحة المالك</h3><input id="e" type="email" dir="ltr" placeholder="البريد"><input id="pw" type="password" dir="ltr" placeholder="كلمة المرور"><button class="p" style="width:100%" onclick="login()">دخول</button></div>`;
+ const r=await db.rpc('owner_clinics');
+ if(r.error)return A.innerHTML=`<div class="c">هذا الحساب ليس مالك المنصة.<br><br><button onclick="out()">خروج</button></div>`;
+ L=r.data||[];render()}
+async function login(){const{error}=await db.auth.signInWithPassword({email:$('e').value.trim(),password:$('pw').value});if(error)return toast('بيانات غير صحيحة');boot()}
+async function out(){await db.auth.signOut();location.reload()}
+function render(){
+ const act=L.filter(c=>eff(c)=='فعّال'),exp=L.filter(c=>eff(c)=='منتهي'||eff(c)=='موقوف');
+ A.innerHTML=`<div class="gr"><div class="st"><b>${L.length}</b><span>العيادات</span></div><div class="st"><b>${act.length}</b><span>فعّالة</span></div><div class="st"><b>${exp.length}</b><span>منتهية/موقوفة</span></div><div class="st"><b>${money(act.reduce((s,c)=>s+Number(c.price),0))}</b><span>إيراد شهري متوقع</span></div></div>
+ <button class="p" style="width:100%;margin-bottom:12px" onclick="newC()">+ عيادة جديدة</button>
+ ${L.map(c=>{const s=eff(c),dl=Math.ceil((new Date(c.period_end)-Date.now())/864e5);return`<div class="c"><div style="display:flex;justify-content:space-between"><b>${c.name}</b><span class="tag ${s=='منتهي'||s=='موقوف'?'x':''}">${s}</span></div>
+ <div class="mu">${money(c.price)} / شهر · ينتهي ${dd(c.period_end)} (${dl>0?dl+' يوم':'منتهٍ'}) · ${c.patients} مريض · ${c.doctors} طبيب</div>
+ <div class="a"><button class="g" onclick="ext('${c.clinic_id}')">تجديد</button><button onclick="price('${c.clinic_id}',${c.price})">السعر</button><button onclick="lnk('${c.clinic_id}')">ربط مدير</button><button class="r" onclick="sus('${c.clinic_id}',${c.status!='suspended'})">${c.status=='suspended'?'تفعيل':'إيقاف'}</button></div></div>`}).join('')||'<div class="c mu">لا عيادات</div>'}
+ <button onclick="out()" style="width:100%">خروج</button>`}
+async function rpc(n,a,m){const r=await db.rpc(n,a);if(r.error)return toast(r.error.message);toast(m||'تم');boot()}
+function ext(id){const m=+prompt('عدد الأشهر؟','1');if(!m)return;const a=+prompt('المبلغ المستلم؟','0');const w=prompt('طريقة الدفع','نقد');rpc('owner_extend',{p_clinic:id,p_months:m,p_amount:a||0,p_method:w,p_note:null},'تم التجديد')}
+function price(id,p){const v=prompt('السعر الشهري لهذه العيادة:',p);if(v===null||isNaN(+v))return;rpc('owner_set_price',{p_clinic:id,p_price:+v})}
+function sus(id,s){if(confirm(s?'إيقاف هذه العيادة؟':'إعادة تفعيل العيادة؟'))rpc('owner_set_status',{p_clinic:id,p_status:s?'suspended':'active'})}
+function newC(){const n=prompt('اسم العيادة:');if(!n)return;const p=prompt('السعر الشهري:','0');rpc('owner_create_clinic',{p_name:n,p_price:+p||0},'أُنشئت العيادة')}
+async function lnk(id){const e=prompt('بريد المدير (أنشئه أولاً من Supabase ← Authentication):');if(!e)return;const n=prompt('اسم الطبيب/المدير:')||'المدير';const r=await db.rpc('owner_link_admin',{p_clinic:id,p_email:e.trim(),p_name:n});toast(r.error?r.error.message:r.data=='ok'?'تم الربط':'البريد غير موجود في Authentication');boot()}
+boot();
+</script>
+</body>
+</html>
