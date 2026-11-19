@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>العيادة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
 :root{--bg:#f3f7f8;--cd:#fff;--tx:#12303a;--mu:#6b8590;--pr:#0f8b8d;--p2:#e1f3f3;--bd:#dbe6e9;--ok:#2e9e5b;--er:#d9534f;color-scheme:light}
 @media(prefers-color-scheme:dark){:root{--bg:#0e1c21;--cd:#16282f;--tx:#e6f1f3;--mu:#8fa8b1;--pr:#2bb3b5;--p2:#17383b;--bd:#264047;color-scheme:dark}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px Tahoma,Arial,sans-serif;padding-top:env(safe-area-inset-top,0)}
-.w{max-width:900px;margin:auto;padding:12px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 Tajawal,'Segoe UI',Tahoma,Arial,sans-serif;padding-top:env(safe-area-inset-top,0)}
+.w{max-width:none;margin:0;padding:0}
 button,input,select{font:inherit;color:inherit}
 button{background:var(--p2);color:var(--pr);border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}
 button.p{background:var(--pr);color:#fff}button.g{background:var(--ok);color:#fff}button.r{background:var(--er);color:#fff}button.on{background:var(--pr);color:#fff}
@@ -32,6 +33,26 @@ input,select{width:100%;padding:11px;margin:4px 0;border:1px solid var(--bd);bor
 .inv{background:#fff;color:#111;max-width:520px;margin:auto;border-radius:12px;padding:18px;line-height:1.9}.inv .mu{color:#555}.inv .row{border-color:#ddd}.inv h2{margin:0}
 .np{max-width:520px;margin:10px auto;justify-content:center}
 @media print{body>*:not(#ov){display:none!important}#ov{position:static;background:none;padding:0}.np{display:none}}
+
+/* ===== تصميم سطح المكتب ===== */
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+.sb{background:var(--cd);border-inline-end:1px solid var(--bd);padding:18px 12px;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{font-size:18px;padding:6px 10px 14px;display:flex;gap:8px;align-items:center}
+.grp{font-size:12px;color:var(--mu);padding:14px 10px 6px}
+.nv{display:flex;gap:10px;align-items:center;width:100%;text-align:start;background:transparent;color:var(--tx);font-weight:500;padding:10px 12px;border-radius:10px}
+.nv span{width:22px;text-align:center}.nv:hover{background:var(--p2)}.nv.on{background:var(--pr);color:#fff;font-weight:700}
+.usr{margin-top:auto;padding:12px 10px 4px;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;gap:8px}.usr small{display:block;color:var(--mu)}
+.mn{min-width:0}
+.tb{display:flex;justify-content:space-between;align-items:center;padding:20px 28px 8px;gap:12px;flex-wrap:wrap}.tb h2{margin:0;font-size:24px}
+.tbr{display:flex;gap:10px;align-items:center;color:var(--mu)}
+.ct{padding:12px 28px 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr));gap:16px;align-items:start}
+.ct>.gr{grid-column:1/-1}.ct>.c{margin:0}.ct>button{grid-column:1/-1;justify-self:start}
+.ct .c>input,.ct .c>select{max-width:560px;display:block}.ct .c>button.p{max-width:560px}
+.c{border-radius:16px;box-shadow:0 1px 3px rgba(16,24,40,.05)}.c h3{font-size:16px;margin:0 0 12px}
+.gr{gap:14px}.st{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:16px 18px;box-shadow:0 1px 3px rgba(16,24,40,.05)}.st b{font-size:30px}
+.tag{padding:3px 10px;border-radius:20px;font-size:12px;background:var(--p2);color:var(--pr);white-space:nowrap}
+.mn>.c{margin:8px 28px 0}
+@media(max-width:900px){.app{display:block}.sb{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:8px;gap:4px;border-inline-end:0;border-bottom:1px solid var(--bd)}.brand,.grp,.usr{display:none}.nv{width:auto;white-space:nowrap;padding:9px 12px}.tb{padding:12px 14px 4px}.tb h2{font-size:20px}.ct{padding:8px 14px 30px}.mn>.c{margin:8px 14px 0}}
 </style>
 </head>
 <body>
@@ -57,8 +78,8 @@ async function boot(){
  db.channel('live').on('postgres_changes',{event:'*',schema:'public',table:'waiting_queue'},load)
   .on('postgres_changes',{event:'*',schema:'public',table:'appointments'},load).subscribe();
 }
-function login(){A.innerHTML=`<div class="c" style="margin-top:12vh"><h3>🦷 دخول الطبيب</h3><input id="e" type="email" placeholder="البريد الإلكتروني" dir="ltr"><input id="pw" type="password" placeholder="كلمة المرور" dir="ltr"><button class="p" style="width:100%" onclick="doLogin()">دخول</button><p style="text-align:center"><a href="#" style="color:var(--pr)" onclick="doSignup();return false">موظف جديد؟ إنشاء حساب بهذا البريد وكلمة المرور</a></p></div>`}
-async function doLogin(){const{error}=await db.auth.signInWithPassword({email:$('e').value.trim(),password:$('pw').value});if(error)return toast('بيانات غير صحيحة');boot()}
+function login(){A.innerHTML=`<div class="c" style="max-width:380px;margin:12vh auto 0"><h3>🦷 دخول الطبيب</h3><input id="e" type="text" placeholder="اسم المستخدم أو البريد" dir="ltr" autocapitalize="none"><input id="pw" type="password" placeholder="كلمة المرور" dir="ltr"><button class="p" style="width:100%" onclick="doLogin()">دخول</button></div>`}
+async function doLogin(){const{error}=await db.auth.signInWithPassword({email:uemail($('e').value),password:$('pw').value});if(error)return toast('بيانات غير صحيحة');boot()}
 async function out(){await db.auth.signOut();location.reload()}
 
 async function load(){
@@ -71,20 +92,25 @@ async function load(){
  pts=p.data||[];aps=a.data||[];qs=q.data||[];docs=d.data||[];scs=s.data||[];sv=v.data||[];nt=nn.data||[];await loadP();render()}
 
 function render(){
- const N=[['home','🏠 الرئيسية'],['pat','👥 المرضى'],['apt','📅 المواعيد'],['wait','⏳ الانتظار'],['teeth','🦷 الأسنان'],['plan','📋 الخطة'],['acc','💰 الحسابات'],['inv','🧾 الفواتير'],['file','📁 الملف'],['rxs','💊 الوصفات'],['srv','💲 الأسعار'],['rep','📊 التقارير'],...(me.role=='admin'?[['stf','👥 الفريق']]:[]),['set','⚙️ الشاشة']];
- const nav=N.map(([k,l])=>`<button class="${tab==k?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
+ const G=[['الرئيسية',[['home','🏠','الرئيسية'],['apt','📅','المواعيد'],['wait','⏳','الانتظار']]],['المرضى',[['pat','👥','المرضى'],['file','📁','الملف الطبي'],['teeth','🦷','مخطط الأسنان'],['plan','📋','خطة العلاج'],['rxs','💊','الوصفات']]],['المالية',[['acc','💰','الحسابات'],['inv','🧾','الفواتير'],['srv','💲','الأسعار']]],['الإدارة',[['rep','📊','التقارير'],...(me.role=='admin'?[['stf','👥','الفريق']]:[]),['set','⚙️','الإعدادات']]]];
+ const nav=G.map(([g,l])=>`<div class="grp">${g}</div>${l.map(([k,i,t])=>`<button class="nv ${tab==k?'on':''}" onclick="tab='${k}';render()"><span>${i}</span>${t}</button>`).join('')}`).join(''),title=(G.flatMap(x=>x[1]).find(x=>x[0]==tab)||[0,'',''])[2];
  const today=aps.filter(a=>new Date(a.starts_at).toDateString()==new Date().toDateString());
  const rq=aps.filter(a=>a.status=='requested');let b='';
- if(tab=='home')b=`<div class="gr"><div class="st"><b>${today.length}</b><span>مواعيد اليوم</span></div><div class="st"><b>${qs.filter(x=>x.status=='waiting').length}</b><span>ينتظرون</span></div><div class="st"><b>${pts.length}</b><span>المرضى</span></div><div class="st"><b>${rq.length}</b><span>طلبات حجز</span></div></div>
- <div class="c" style="margin-top:12px"><h3>🔔 طلبات الحجز</h3>${rq.map(a=>`<div class="row"><span>${pn(a.patient_id)}<small>${new Date(a.starts_at).toLocaleString('ar')}</small></span><span class="a"><button class="g" onclick="setS('${a.id}','booked')">قبول</button><button class="r" onclick="setS('${a.id}','cancelled')">رفض</button></span></div>`).join('')||'<div class="mu">لا توجد طلبات</div>'}</div><div class="c"><h3>🔔 الإشعارات</h3>${nt.map(n=>`<div class="row"><span>${n.title||n.kind}<small>${new Date(n.created_at).toLocaleString('ar')}</small></span></div>`).join('')||'<div class="mu">لا إشعارات</div>'}</div>`;
+ if(tab=='home'){const tg=a=>`<span class="tag">${SN[a.status]}</span>`,wt=qs.filter(x=>['waiting','called'].includes(x.status));
+ b=`<div class="gr"><div class="st"><b>${today.length}</b><span>مواعيد اليوم</span></div><div class="st"><b>${wt.length}</b><span>ينتظرون الآن</span></div><div class="st"><b>${pts.length}</b><span>إجمالي المرضى</span></div><div class="st"><b>${rq.length}</b><span>طلبات حجز جديدة</span></div></div>
+ <div class="c"><h3>🔔 طلبات الحجز (${rq.length})</h3>${rq.map(a=>`<div class="row"><span>${pn(a.patient_id)}<small>${new Date(a.starts_at).toLocaleString('ar')}${dn(a)}</small></span><span class="a"><button class="g" onclick="setS('${a.id}','booked')">قبول</button><button class="r" onclick="setS('${a.id}','cancelled')">رفض</button></span></div>`).join('')||'<div class="mu">لا توجد طلبات</div>'}</div>
+ <div class="c"><h3>📅 مواعيد اليوم</h3>${today.filter(a=>a.status!='requested').sort((x,y)=>x.starts_at>y.starts_at?1:-1).map(a=>`<div class="row"><span>${pn(a.patient_id)}<small>${tm(a.starts_at)}${dn(a)}</small></span><span class="a">${tg(a)}${a.status=='booked'?`<button class="g" onclick="chk('${a.id}')">حضر</button>`:''}</span></div>`).join('')||'<div class="mu">لا مواعيد اليوم</div>'}</div>
+ <div class="c"><h3>⏳ قائمة الانتظار</h3>${wt.map(x=>`<div class="row"><span>رقم ${x.queue_no} - ${pn(x.patient_id)}<small>${x.status=='called'?'تم استدعاؤه':'ينتظر'}</small></span>${x.status=='waiting'?`<button class="p" onclick="cal('${x.id}')">📣 استدعاء</button>`:''}</div>`).join('')||'<div class="mu">القائمة فارغة</div>'}</div>
+ <div class="c"><h3>🔔 الإشعارات</h3>${nt.map(n=>`<div class="row"><span>${n.title||n.kind}<small>${new Date(n.created_at).toLocaleString('ar')}</small></span></div>`).join('')||'<div class="mu">لا إشعارات</div>'}</div>`}
  if(tab=='pat')b=`<div class="c"><h3>مريض جديد</h3><input id="n" placeholder="الاسم الكامل"><input id="ph" placeholder="الهاتف" inputmode="tel"><button class="p" onclick="addP()">حفظ</button></div><div class="c">${pts.map(p=>`<div class="row"><span>#${p.file_no} ${p.full_name}<small>${p.phone||''}</small></span>${p.user_id?'<span class="mu">✅ مفعّل</span>':`<button onclick="act('${p.id}')">🔑 كود تفعيل</button>`}</div>`).join('')||'<div class="mu">لا مرضى بعد</div>'}</div>`;
  if(tab=='apt'){const dt=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16);
  b=`<div class="c"><h3>موعد جديد</h3><select id="ap">${pts.map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('')}</select><select id="ad">${docs.map(d=>`<option value="${d.id}" ${d.id==dId()?'selected':''}>${d.name}</option>`).join('')}</select><input id="at" type="datetime-local" value="${dt}"><button class="p" onclick="addA()">حجز</button></div>
  ${calHead()}<div class="c">${calList().map(a=>`<div class="row"><span>${pn(a.patient_id)}<small>${new Date(a.starts_at).toLocaleString('ar')}${dn(a)}</small></span><span class="a"><span class="mu">${SN[a.status]}</span>${a.status=='booked'?`<button class="g" onclick="chk('${a.id}')">حضر</button><button class="r" onclick="setS('${a.id}','cancelled')">إلغاء</button><button onclick="setS('${a.id}','no_show')">لم يحضر</button>`:''}</span></div>`).join('')||'<div class="mu">—</div>'}</div>`}
  if(tab=='wait')b=`<div class="c"><h3>قائمة الانتظار</h3>${qs.filter(x=>x.status!='done').map(x=>`<div class="row"><span>رقم ${x.queue_no} - ${pn(x.patient_id)}<small>${x.status=='called'?'تم الاستدعاء':'ينتظر'}</small></span>${x.status=='waiting'?`<button class="p" onclick="cal('${x.id}')">📣 استدعاء</button>`:`<button class="g" onclick="fin('${x.id}','${x.appointment_id}')">انتهى</button>`}</div>`).join('')||'<div class="mu">القائمة فارغة</div>'}</div>`;
  if(tab=='teeth')b=teethUI();if(tab=='acc')b=accUI();if(tab=='inv')b=invUI();if(tab=='srv')b=srvUI();if(tab=='file')b=fileUI();if(tab=='plan')b=planUI();if(tab=='rxs')b=rxUI();if(tab=='rep')b=repUI();if(tab=='stf')b=stfUI();
- if(tab=='set')b=`<div class="c"><h3>شاشة العرض</h3>${scs.map(s=>{const l=location.href.split('#')[0]+'#screen='+s.id;return`<p>${s.name}</p><input readonly dir="ltr" value="${l}" onclick="this.select()"><select onchange="priv('${s.id}',this.value)">${[['full_name','الاسم الكامل'],['first_name','الاسم الأول'],['number_only','رقم الدور فقط']].map(([k,v])=>`<option value="${k}" ${s.privacy==k?'selected':''}>${v}</option>`).join('')}</select>`}).join('')}<p class="mu">افتح الرابط على تلفاز العيادة.</p></div><div class="c"><h3>بيانات العيادة</h3><input id="cn1" value="${cl.name||''}" placeholder="اسم العيادة"><input id="cp1" value="${cl.phone||''}" placeholder="هاتف العيادة" inputmode="tel"><input id="cw1" value="${cl.whatsapp||''}" placeholder="واتساب (بصيغة دولية)"><input id="ca1" value="${cl.address||''}" placeholder="العنوان"><button class="p" style="width:100%" onclick="saveCl()">حفظ</button></div><button style="width:100%;margin-bottom:8px" onclick="backup()">⬇️ نسخة احتياطية (JSON)</button><button class="r" onclick="out()">تسجيل الخروج</button>`;
- A.innerHTML=`${banner()}<div class="nav">${nav}</div>${b}`}
+ if(tab=='set')b=`<div class="c"><h3>شاشة العرض</h3>${scs.map(s=>{const l=location.href.split('#')[0]+'#screen='+s.id;return`<p>${s.name}</p><input readonly dir="ltr" value="${l}" onclick="this.select()"><select onchange="priv('${s.id}',this.value)">${[['full_name','الاسم الكامل'],['first_name','الاسم الأول'],['number_only','رقم الدور فقط']].map(([k,v])=>`<option value="${k}" ${s.privacy==k?'selected':''}>${v}</option>`).join('')}</select>`}).join('')}<p class="mu">افتح الرابط على تلفاز العيادة.</p></div><div class="c"><h3>بيانات العيادة</h3><input id="cn1" value="${cl.name||''}" placeholder="اسم العيادة"><input id="cp1" value="${cl.phone||''}" placeholder="هاتف العيادة" inputmode="tel"><input id="cw1" value="${cl.whatsapp||''}" placeholder="واتساب (بصيغة دولية)"><input id="ca1" value="${cl.address||''}" placeholder="العنوان"><button class="p" style="width:100%" onclick="saveCl()">حفظ</button></div><div class="c"><h3>تغيير كلمة المرور</h3><input id="np" type="password" dir="ltr" placeholder="كلمة المرور الجديدة"><button class="p" style="width:100%" onclick="chgPw()">تغيير</button></div><button style="width:100%;margin-bottom:8px" onclick="backup()">⬇️ نسخة احتياطية (JSON)</button><button class="r" onclick="out()">تسجيل الخروج</button>`;
+ const dl=sb?Math.ceil((new Date(sb.period_end)-Date.now())/864e5):null,RL2={admin:'مدير',doctor:'طبيب',receptionist:'استقبال'};
+ A.innerHTML=`<div class="app"><aside class="sb"><div class="brand">🦷 <b>${cn}</b></div>${nav}<div class="usr"><div>${me.full_name}<small>${RL2[me.role]||''}</small></div><button onclick="out()">خروج</button></div></aside><main class="mn"><header class="tb"><h2>${title}</h2><div class="tbr">${sb?`<span class="tag">${sb.status=='trial'?'تجريبي':'اشتراك فعّال'} · ${dl>0?dl+' يوم':'منتهٍ'}</span>`:''}<span>${new Date().toLocaleDateString('ar',{weekday:'long',day:'numeric',month:'long'})}</span></div></header>${banner()}<div class="ct">${b}</div></main></div>`}
 
 const setS=async(id,s)=>{await ok(db.from('appointments').update({status:s}).eq('id',id));toast('تم')};
 const chk=async id=>{await ok(db.rpc('check_in',{p_appt:id}));toast('سُجّل الحضور')};
@@ -168,6 +194,7 @@ async function upSv(id,v){if(v===''||+v<0)return toast('سعر غير صحيح')
 async function tgSv(id,a){await ok(db.from('services').update({active:a}).eq('id',id));load()}
 async function addStd(){const have=new Set(sv.map(s=>s.name)),rows=Object.values(CD).filter(n=>n!='أخرى'&&!have.has(n)).map(n=>({clinic_id:me.clinic_id,name:n,default_price:0}));if(!rows.length)return toast('كلها موجودة');await ok(db.from('services').insert(rows));toast('أُضيفت، حدّد أسعارها');load()}
 
+const uemail=v=>{v=String(v).trim().toLowerCase();return v.includes('@')?v:v+'@staff.clinic'};
 const canMed=()=>me.role=='admin'||me.role=='doctor'||me.can_view_medical;
 const dId=()=>{const d=docs.find(x=>x.user_id==me.id)||docs[0];return d&&d.id},dn=a=>{const d=docs.find(x=>x.id==a.doctor_id);return d?' · '+d.name:''};
 function fileUI(){
@@ -184,12 +211,20 @@ async function saveP(){const g=i=>$(i).value.trim()||null;
 function stfUI(){
  if(!stf){loadStf();return'<div class="c mu">جارٍ التحميل…</div>'}
  const RL={admin:'مدير',doctor:'طبيب',receptionist:'استقبال'};
- return`<div class="c"><h3>إضافة موظف أو طبيب</h3><p class="mu">يختار الموظف «موظف جديد؟ إنشاء حساب» من شاشة الدخول، ثم تربطه هنا بالبريد نفسه.</p><input id="se" type="email" dir="ltr" placeholder="بريد الموظف"><input id="sn2" placeholder="الاسم"><select id="sr"><option value="doctor">طبيب</option><option value="receptionist">موظف استقبال</option></select><button class="p" style="width:100%" onclick="addStaff()">ربط بالعيادة</button></div>
+ return`<div class="c"><h3>إضافة موظف أو طبيب</h3><p class="mu">أنشئ حساب الموظف بنفسك وأعطه اسم المستخدم وكلمة المرور.</p><input id="se" dir="ltr" placeholder="اسم المستخدم (إنجليزي، مثل dr.ali)" autocapitalize="none"><input id="sn2" placeholder="الاسم"><input id="spw" type="text" dir="ltr" placeholder="كلمة مرور (6 أحرف على الأقل)"><select id="sr"><option value="doctor">طبيب</option><option value="receptionist">موظف استقبال</option></select><button class="p" style="width:100%" onclick="addStaff()">ربط بالعيادة</button></div>
  <div class="c"><h3>الفريق</h3>${stf.map(u=>`<div class="row" style="display:block;opacity:${u.active?1:.5}"><b>${u.full_name}</b> <span class="mu">${RL[u.role]||u.role}${u.active?'':' (موقوف)'}</span>${u.id==me.id?'':`<div class="a" style="margin-top:6px"><button onclick="stP('${u.id}','can_view_medical',${!u.can_view_medical})">${u.can_view_medical?'✅':'⬜'} الطبي</button><button onclick="stP('${u.id}','can_view_finance',${!u.can_view_finance})">${u.can_view_finance?'✅':'⬜'} المالي</button><button class="r" onclick="stP('${u.id}','active',${!u.active})">${u.active?'إيقاف':'تفعيل'}</button></div>`}</div>`).join('')}</div>`}
 async function loadStf(){const r=await db.from('users').select('*').neq('role','patient').order('created_at');stf=r.data||[];render()}
-async function addStaff(){const e=$('se').value.trim();if(!e)return toast('أدخل البريد');
- const r=await db.rpc('add_staff',{p_email:e,p_name:$('sn2').value.trim()||'موظف',p_role:$('sr').value});if(r.error)return toast(r.error.message);
- toast(r.data=='ok'?'تم الربط':r.data=='taken'?'هذا الحساب مرتبط بعيادة أخرى':'البريد غير مسجّل، اطلب منه إنشاء حساب أولاً');stf=null;render()}
+async function addStaff(){
+ const raw=$('se').value.trim(),pw=$('spw').value,nm=$('sn2').value.trim()||'موظف';
+ if(!raw||pw.length<6)return toast('أدخل اسم المستخدم وكلمة مرور 6 أحرف على الأقل');
+ const em=uemail(raw.replace(/[^a-zA-Z0-9._@-]/g,'')),t=supabase.createClient(U,K,{auth:{persistSession:false,autoRefreshToken:false,storageKey:'sb-tmp'}});
+ const s=await t.auth.signUp({email:em,password:pw});
+ if(s.error)return toast(s.error.message);
+ if(s.data.user&&s.data.user.identities&&!s.data.user.identities.length)return toast('اسم المستخدم مستخدم من قبل');
+ const r=await db.rpc('add_staff',{p_email:em,p_name:nm,p_role:$('sr').value});if(r.error)return toast(r.error.message);
+ if(r.data!='ok')return toast('تعذّر الربط');
+ toast('تم إنشاء الحساب');prompt('أعطِ الموظف هذه البيانات (اسم المستخدم / كلمة المرور):',em.replace('@staff.clinic','')+' / '+pw);stf=null;render()}
+async function chgPw(){const p=$('np').value;if(p.length<6)return toast('6 أحرف على الأقل');const{error}=await db.auth.updateUser({password:p});toast(error?error.message:'تم تغيير كلمة المرور')}
 async function stP(id,k,v){await ok(db.from('users').update({[k]:v}).eq('id',id));stf=null;render()}
 async function doSignup(){const e=$('e').value.trim(),p=$('pw').value;if(!e||p.length<6)return toast('أدخل بريداً وكلمة مرور (6 أحرف على الأقل)');
  const{error}=await db.auth.signUp({email:e,password:p});if(error)return toast(error.message);await db.auth.signOut();toast('تم إنشاء الحساب. أعطِ بريدك لمدير العيادة ليربطك ثم سجّل الدخول')}
