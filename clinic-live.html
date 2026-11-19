@@ -53,6 +53,42 @@ input,select{width:100%;padding:11px;margin:4px 0;border:1px solid var(--bd);bor
 .tag{padding:3px 10px;border-radius:20px;font-size:12px;background:var(--p2);color:var(--pr);white-space:nowrap}
 .mn>.c{margin:8px 28px 0}
 @media(max-width:900px){.app{display:block}.sb{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:8px;gap:4px;border-inline-end:0;border-bottom:1px solid var(--bd)}.brand,.grp,.usr{display:none}.nv{width:auto;white-space:nowrap;padding:9px 12px}.tb{padding:12px 14px 4px}.tb h2{font-size:20px}.ct{padding:8px 14px 30px}.mn>.c{margin:8px 14px 0}}
+
+/* ===== هوية: كحلي + بنفسجي + مرجاني ===== */
+:root{--bg:#eef0fb;--cd:#fff;--tx:#1d2145;--mu:#7a7fa3;--pr:#5b5bd6;--p2:#eceefe;--bd:#e4e7f7;--ok:#25b97f;--er:#ff5d6c}
+@media(prefers-color-scheme:dark){:root{--bg:#12142b;--cd:#1c1f3f;--tx:#eceefb;--mu:#9aa0c8;--pr:#8b8cf0;--p2:#272b57;--bd:#2c3062}}
+body{background:var(--bg)}
+.mn{background:radial-gradient(900px 300px at 80% -80px,rgba(108,99,255,.14),transparent)}
+.sb{background:linear-gradient(180deg,#171a3d 0%,#1f2459 60%,#2a2f78 100%);color:#e9ebff;border:0}
+.sb .brand{color:#fff}.sb .grp{color:rgba(233,235,255,.5)}
+.sb .nv{color:#cfd3ff;font-weight:500}
+.sb .nv:hover{background:rgba(255,255,255,.08);transform:none;box-shadow:none}
+.sb .nv.on{background:linear-gradient(135deg,#6c63ff,#8b8cf0);color:#fff;font-weight:700;box-shadow:0 8px 18px -6px rgba(108,99,255,.7)}
+.sb .usr{border-top-color:rgba(255,255,255,.14)}.sb .usr small{color:rgba(233,235,255,.6)}
+.sb .usr button{background:rgba(255,255,255,.12);color:#fff;box-shadow:none}
+button{transition:transform .18s,box-shadow .18s,filter .18s}
+button:hover{transform:translateY(-2px);box-shadow:0 10px 20px -8px rgba(60,60,160,.5)}
+button:active{transform:translateY(0) scale(.97);box-shadow:none}
+button.p,button.on{background:linear-gradient(135deg,#6c63ff,#5b5bd6);color:#fff;box-shadow:0 6px 14px -5px rgba(91,91,214,.65)}
+button.g{background:linear-gradient(135deg,#25b97f,#46d9a0);color:#fff;box-shadow:0 6px 14px -5px rgba(37,185,127,.6)}
+button.r{background:linear-gradient(135deg,#ff5d6c,#ff8a7a);color:#fff;box-shadow:0 6px 14px -5px rgba(255,93,108,.6)}
+.nv:hover{transform:none}
+input,select{background:var(--bg);border:1px solid transparent;border-radius:14px;transition:border-color .18s,box-shadow .18s}
+input:focus,select:focus{outline:0;border-color:var(--pr);box-shadow:0 0 0 4px rgba(108,99,255,.16)}
+.c{border:0;border-radius:22px;box-shadow:0 12px 30px -16px rgba(40,44,120,.32)}
+.c h3::before{background:linear-gradient(180deg,#ff6b81,#6c63ff)}
+.row:hover{background:rgba(108,99,255,.05)}
+.gr .st{border:0;color:#fff;box-shadow:0 14px 26px -14px rgba(40,44,120,.6)}
+.gr .st b{color:#fff}.gr .st span{color:rgba(255,255,255,.78)}
+.gr .st:nth-child(4n+1){background:linear-gradient(135deg,#2a2f6b,#1b1f4a)}
+.gr .st:nth-child(4n+2){background:linear-gradient(135deg,#6c63ff,#8b8cf0)}
+.gr .st:nth-child(4n+3){background:linear-gradient(135deg,#ff6b81,#ff9a7a)}
+.gr .st:nth-child(4n+4){background:linear-gradient(135deg,#25b97f,#46d9a0)}
+.fab{position:fixed;left:24px;bottom:24px;z-index:20;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.fabb{width:58px;height:58px;border-radius:50%;font-size:26px;padding:0;background:linear-gradient(135deg,#ff5d6c,#ff8a7a);color:#fff;box-shadow:0 14px 26px -8px rgba(255,93,108,.7)}
+.fabm{display:flex;flex-direction:column;gap:8px}.fabm button{background:var(--cd);color:var(--tx);box-shadow:0 10px 24px -10px rgba(40,44,120,.5);border-radius:14px;padding:12px 16px}
+@media print{.fab{display:none}}
+@media(prefers-reduced-motion:reduce){button{transition:none}button:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -61,7 +97,7 @@ input,select{width:100%;padding:11px;margin:4px 0;border:1px solid var(--bd);bor
 const U='https://qmpkufewmjlggacjivfp.supabase.co',K='sb_publishable_FImCadKH3NWYFBYdUQW6Xg_gHdSCmLY';
 const db=supabase.createClient(U,K,{auth:{storageKey:'sb-doctor'}}),$=i=>document.getElementById(i),A=$('app');
 const SN={requested:'طلب حجز',booked:'محجوز',waiting:'ينتظر',in_treatment:'قيد العلاج',done:'انتهى',cancelled:'ألغى',no_show:'لم يحضر'};
-let me,pts=[],aps=[],qs=[],docs=[],scs=[],sv=[],tab='home',cn='',sp=null,to=null,th=[],dt=[],py=[],iv=[],bal=null,nt=[],rx=[],rp=null,dr=[],cl={},tp=[],cv='day',ca=new Date(),sb=null,pm=null,stf=null;const SUP='';
+let me,pts=[],aps=[],qs=[],docs=[],scs=[],sv=[],tab='home',cn='',sp=null,to=null,th=[],dt=[],py=[],iv=[],bal=null,nt=[],rx=[],rp=null,dr=[],cl={},tp=[],cv='day',ca=new Date(),sb=null,pm=null,stf=null,fab=false;const SUP='';
 const toast=m=>{const e=document.createElement('div');e.className='t';e.textContent=m;document.body.append(e);setTimeout(()=>e.remove(),2200)};
 const ok=async p=>{const r=await p;if(r.error){toast('خطأ: '+r.error.message);throw r.error}return r.data};
 const pn=id=>(pts.find(p=>p.id==id)||{}).full_name||'';
@@ -110,7 +146,7 @@ function render(){
  if(tab=='teeth')b=teethUI();if(tab=='acc')b=accUI();if(tab=='inv')b=invUI();if(tab=='srv')b=srvUI();if(tab=='file')b=fileUI();if(tab=='plan')b=planUI();if(tab=='rxs')b=rxUI();if(tab=='rep')b=repUI();if(tab=='stf')b=stfUI();
  if(tab=='set')b=`<div class="c"><h3>شاشة العرض</h3>${scs.map(s=>{const l=location.href.split('#')[0]+'#screen='+s.id;return`<p>${s.name}</p><input readonly dir="ltr" value="${l}" onclick="this.select()"><select onchange="priv('${s.id}',this.value)">${[['full_name','الاسم الكامل'],['first_name','الاسم الأول'],['number_only','رقم الدور فقط']].map(([k,v])=>`<option value="${k}" ${s.privacy==k?'selected':''}>${v}</option>`).join('')}</select>`}).join('')}<p class="mu">افتح الرابط على تلفاز العيادة.</p></div><div class="c"><h3>بيانات العيادة</h3><input id="cn1" value="${cl.name||''}" placeholder="اسم العيادة"><input id="cp1" value="${cl.phone||''}" placeholder="هاتف العيادة" inputmode="tel"><input id="cw1" value="${cl.whatsapp||''}" placeholder="واتساب (بصيغة دولية)"><input id="ca1" value="${cl.address||''}" placeholder="العنوان"><button class="p" style="width:100%" onclick="saveCl()">حفظ</button></div><div class="c"><h3>تغيير كلمة المرور</h3><input id="np" type="password" dir="ltr" placeholder="كلمة المرور الجديدة"><button class="p" style="width:100%" onclick="chgPw()">تغيير</button></div><button style="width:100%;margin-bottom:8px" onclick="backup()">⬇️ نسخة احتياطية (JSON)</button><button class="r" onclick="out()">تسجيل الخروج</button>`;
  const dl=sb?Math.ceil((new Date(sb.period_end)-Date.now())/864e5):null,RL2={admin:'مدير',doctor:'طبيب',receptionist:'استقبال'};
- A.innerHTML=`<div class="app"><aside class="sb"><div class="brand">🦷 <b>${cn}</b></div>${nav}<div class="usr"><div>${me.full_name}<small>${RL2[me.role]||''}</small></div><button onclick="out()">خروج</button></div></aside><main class="mn"><header class="tb"><h2>${title}</h2><div class="tbr">${sb?`<span class="tag">${sb.status=='trial'?'تجريبي':'اشتراك فعّال'} · ${dl>0?dl+' يوم':'منتهٍ'}</span>`:''}<span>${new Date().toLocaleDateString('ar',{weekday:'long',day:'numeric',month:'long'})}</span></div></header>${banner()}<div class="ct">${b}</div></main></div>`}
+ A.innerHTML=`<div class="app"><aside class="sb"><div class="brand">🦷 <b>${cn}</b></div>${nav}<div class="usr"><div>${me.full_name}<small>${RL2[me.role]||''}</small></div><button onclick="out()">خروج</button></div></aside><main class="mn"><header class="tb"><h2>${title}</h2><div class="tbr">${sb?`<span class="tag">${sb.status=='trial'?'تجريبي':'اشتراك فعّال'} · ${dl>0?dl+' يوم':'منتهٍ'}</span>`:''}<span>${new Date().toLocaleDateString('ar',{weekday:'long',day:'numeric',month:'long'})}</span></div></header>${banner()}<div class="ct">${b}</div></main><div class="fab">${fab?`<div class="fabm"><button onclick="fab=false;tab='pat';render()">👤 مريض جديد</button><button onclick="fab=false;tab='apt';render()">📅 حجز موعد</button></div>`:''}<button class="fabb" onclick="fab=!fab;render()">${fab?'✕':'＋'}</button></div></div>`}
 
 const setS=async(id,s)=>{await ok(db.from('appointments').update({status:s}).eq('id',id));toast('تم')};
 const chk=async id=>{await ok(db.rpc('check_in',{p_appt:id}));toast('سُجّل الحضور')};
